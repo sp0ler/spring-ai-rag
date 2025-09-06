@@ -1,0 +1,26 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+ai:
+  url: http://localhost:11434
+  model: deepseek-r1:8b
+
+spring:
+  application:
+    name: ai
+  threads:
+    virtual:
+      enabled: true
+  ai:
+    openai:
+      api-key: local
+      base-url: ${ai.url}
+      chat:
+        options:
+          model: ${ai.model}
+      embedding:
+        base-url: ${ai.url}
+        options:
+          model: ${ai.model}
+
