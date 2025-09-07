@@ -5,12 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import ru.deevdenis.ai.properties.AiProperties;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,24 +26,22 @@ import java.util.Objects;
 public class MemoryService {
 
     private final RedisVectorStore vectorStore;
-
-    @Value("classpath:annual-report/sber-ar-2023-ru.pdf")
-    private Resource sber2023;
-
-    @Value("classpath:annual-report/sber-ar-2024-ru.pdf")
-    private Resource sber2024;
-
-    @PostConstruct
-    public void init() {
-        saveDocument(sber2023);
-        saveDocument(sber2024);
-    }
+    private final AiProperties aiProperties;
 
     public void saveDocument(Resource resource) {
         log.info("Saving document {}", resource.getFilename());
 
         TikaDocumentReader reader = new TikaDocumentReader(resource);
         List<Document> documents = reader.read();
+
+        AiProperties.Splitter splitter = aiProperties.getSplitter();
+        TokenTextSplitter textSplitter = new TokenTextSplitter(
+                splitter.getChunkSize(),
+                splitter.getMinChars(),
+                splitter.getMinTokens(),
+                splitter.getMaxChunks(),
+                splitter.isKeepSeparator()
+        );
 
         List<Document> notSimilarDocuments = new ArrayList<>(documents.size());
         for (Document document : documents) {
@@ -56,7 +56,8 @@ public class MemoryService {
             }
         }
 
-        vectorStore.add(notSimilarDocuments);
+        List<Document> split = textSplitter.split(notSimilarDocuments);
+        vectorStore.add(split);
 
         log.info("Saved document {} with count documents {}", resource.getFilename(), notSimilarDocuments.size());
     }

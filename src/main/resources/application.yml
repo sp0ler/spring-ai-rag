@@ -5,6 +5,12 @@ server:
 ai:
   url: http://localhost:11434
   model: deepseek-r1:8b
+  splitter:
+    chunk-size: 1000
+    min-chars: 80
+    min-tokens: 8
+    max-chunks: 300
+    keep-separator: false
 
 spring:
   application:
