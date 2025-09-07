@@ -15,5 +15,78 @@ services:
     ports:
       - "11434:11434"
 
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_USER_PASSWORD=${REDIS_USER_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl &&
+        redis-server --protected-mode no &&
+        redis-server \
+          --requirepass $$REDIS_PASSWORD \
+          --loadmodule /opt/redis-stack/lib/redisearch.so \
+          --loadmodule /opt/redis-stack/lib/redisjson.so \
+          --loadmodule /opt/redis-stack/lib/redistimeseries.so \
+          --loadmodule /opt/redis-stack/lib/redisgraph.so \
+          --loadmodule /opt/redis-stack/lib/redisbloom.so \
+          --bind 0.0.0.0
+      '
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-u", "redis://$REDIS_USER:$REDIS_USER_PASSWORD@localhost:6379", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    networks:
+      - app-network
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    environment:
+      - RI_REDIS_HOST=redis
+      - RI_REDIS_PORT=6379
+      - RI_REDIS_ALIAS=Local Redis
+      - RI_REDIS_USERNAME=${REDIS_USER}
+      - RI_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RI_REDIS_TLS=FALSE
+    volumes:
+      - redis-insight-data:/db
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
 volumes:
   ollama:
+  redis-insight-data:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -12,4 +12,10 @@ public class ChatService {
 
     private final ChatClient chatClient;
 
+    public String chat(String message) {
+        return chatClient.prompt()
+                .user(message)
+                .call()
+                .content();
+    }
 }

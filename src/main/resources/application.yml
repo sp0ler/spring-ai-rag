@@ -23,4 +23,19 @@ spring:
         base-url: ${ai.url}
         options:
           model: ${ai.model}
-
+    vectorstore:
+      redis:
+        uri: redis://${spring.data.redis.username}:${spring.data.redis.password}@${spring.data.redis.host}:${spring.data.redis.port}
+        prefix: "embedding:"
+        index-name: "spring-ai-index"
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      username: test
+      password: test
+      database: 0
+      client-name: test
+      ssl:
+        enabled: false
+      url: redis://${spring.data.redis.username}:${spring.data.redis.password}@${spring.data.redis.host}:${spring.data.redis.port}

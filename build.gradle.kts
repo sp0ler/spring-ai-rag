@@ -27,9 +27,17 @@ repositories {
 extra["springAiVersion"] = "1.0.1"
 
 dependencies {
+	// spring
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+	// ai
+	implementation("org.springframework.ai:spring-ai-tika-document-reader")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
+	implementation("org.springframework.ai:spring-ai-transformers")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-redis")
+	implementation("com.redis.om:redis-om-spring:1.0.0")
+
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
