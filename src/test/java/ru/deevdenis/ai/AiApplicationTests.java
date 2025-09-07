@@ -1,37 +1,52 @@
 package ru.deevdenis.ai;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.CollectionUtils;
+import ru.deevdenis.ai.properties.AiProperties;
 import ru.deevdenis.ai.rag.MemoryService;
+import ru.deevdenis.ai.rag.SemanticCache;
 import ru.deevdenis.ai.service.ChatService;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import java.util.Set;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AiApplicationTests {
+public class AiApplicationTests {
 
 	@Value("classpath:annual-report/sber-ar-2023-ru.pdf")
-	private Resource sber2023;
+	protected Resource sber2023;
 
 	@Value("classpath:annual-report/sber-ar-2024-ru.pdf")
-	private Resource sber2024;
+	protected Resource sber2024;
 
 	@Autowired
-	private ChatService chatService;
+	protected ChatService chatService;
 
 	@Autowired
-	private MemoryService memoryService;
+	protected MemoryService memoryService;
 
-	@Test
-	@DisplayName("Проверка работы чата LLM")
-	void checkLLMSuccessTest() {
-		var answer = assertDoesNotThrow(() -> chatService.chat("Привет"));
-		assertFalse(answer.isEmpty());
+	@Autowired
+	protected RedisVectorStore vectorStore;
+
+	@Autowired
+	protected RedisTemplate<String, Object> redisTemplate;
+
+	@Autowired
+	protected SemanticCache semanticCache;
+
+	@Autowired
+	protected AiProperties aiProperties;
+
+	public void deleteAllViaRedis() {
+		String prefix = aiProperties.getEmbedding().getPrefix() + "*";
+		Set<String> keys = redisTemplate.keys(prefix);
+
+		if (!CollectionUtils.isEmpty(keys)) {
+			redisTemplate.delete(keys);
+		}
 	}
-
 }

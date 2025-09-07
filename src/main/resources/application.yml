@@ -5,6 +5,12 @@ server:
 ai:
   url: http://localhost:11434
   model: deepseek-r1:8b
+  embedding:
+    prefix: "prefix:"
+    index-name: "index"
+  similarity:
+    threshold: 0.9
+    top-k: 3
   splitter:
     chunk-size: 1000
     min-chars: 80
