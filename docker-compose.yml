@@ -16,7 +16,7 @@ services:
       - "11434:11434"
 
   redis:
-    image: redis/redis-stack-server:latest
+    image: redis/redis-stack:latest
     container_name: redis
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -40,27 +40,29 @@ services:
         echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
-        echo "user default on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
-        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
-        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl &&
-        redis-server --protected-mode no &&
-        redis-server \
+        echo "user default on >$$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user $$REDIS_USER on >$$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+
+        # Build module list dynamically - only load modules that exist
+        MODULES="" &&
+        [ -f /opt/redis-stack/lib/redisearch.so ] && MODULES="$$MODULES --loadmodule /opt/redis-stack/lib/redisearch.so" &&
+        [ -f /opt/redis-stack/lib/rejson.so ] && MODULES="$$MODULES --loadmodule /opt/redis-stack/lib/rejson.so" &&
+        [ -f /opt/redis-stack/lib/redistimeseries.so ] && MODULES="$$MODULES --loadmodule /opt/redis-stack/lib/redistimeseries.so" &&
+        [ -f /opt/redis-stack/lib/redisbloom.so ] && MODULES="$$MODULES --loadmodule /opt/redis-stack/lib/redisbloom.so" &&
+
+        echo "Loading modules: $$MODULES" &&
+
+        exec redis-server /usr/local/etc/redis/redis.conf \
+          --aclfile /usr/local/etc/redis/users.acl \
           --requirepass $$REDIS_PASSWORD \
-          --loadmodule /opt/redis-stack/lib/redisearch.so \
-          --loadmodule /opt/redis-stack/lib/redisjson.so \
-          --loadmodule /opt/redis-stack/lib/redistimeseries.so \
-          --loadmodule /opt/redis-stack/lib/redisgraph.so \
-          --loadmodule /opt/redis-stack/lib/redisbloom.so \
-          --bind 0.0.0.0
+          $$MODULES
       '
     healthcheck:
-      test: [ "CMD", "redis-cli", "-u", "redis://$REDIS_USER:$REDIS_USER_PASSWORD@localhost:6379", "ping" ]
+      test: [ "CMD", "redis-cli", "-u", "redis://$$REDIS_USER:$$REDIS_USER_PASSWORD@localhost:6379", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 5
     restart: unless-stopped
-    tty: true
-    stdin_open: true
     networks:
       - app-network
 

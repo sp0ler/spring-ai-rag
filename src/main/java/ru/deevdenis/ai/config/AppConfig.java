@@ -4,10 +4,12 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.transformers.TransformersEmbeddingModel;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import redis.clients.jedis.DefaultJedisClientConfig;
@@ -59,5 +61,11 @@ public class AppConfig {
                 .initializeSchema(true)
                 .vectorAlgorithm(RedisVectorStore.Algorithm.HSNW)
                 .build();
+    }
+
+    @Bean
+    @Primary
+    public EmbeddingModel embeddingModel() {
+        return new TransformersEmbeddingModel();
     }
 }
