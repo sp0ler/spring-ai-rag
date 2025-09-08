@@ -21,6 +21,8 @@ import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisPooled;
 import ru.deevdenis.ai.properties.AiProperties;
+import ru.deevdenis.ai.rag.RedisMemoryAdvisor;
+import ru.deevdenis.ai.rag.SemanticCache;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -89,5 +91,10 @@ public class AppConfig {
     @Bean
     public ExecutorService executorService() {
         return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean
+    public RedisMemoryAdvisor redisMemoryAdvisor(AiProperties aiProperties, SemanticCache semanticCache) {
+        return new RedisMemoryAdvisor(aiProperties, semanticCache);
     }
 }

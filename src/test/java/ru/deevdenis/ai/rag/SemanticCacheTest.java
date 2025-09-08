@@ -3,6 +3,7 @@ package ru.deevdenis.ai.rag;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.vectorstore.SearchRequest;
 import ru.deevdenis.ai.AiApplicationTests;
 
 import java.util.Objects;
@@ -19,7 +20,13 @@ class SemanticCacheTest extends AiApplicationTests {
     @Test
     @DisplayName("Проверка работы семантического кэша с отрицательным результатом")
     void findSimilarlyNullResultSuccessTest() {
-        String result = assertDoesNotThrow(() -> semanticCache.findSimilaryRequest("Я хочу найти информацию о том, как сделать кашу"));
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query("Я хочу найти информацию о том, как сделать кашу")
+                .topK(aiProperties.getSimilarity().getTopK())
+                .similarityThreshold(aiProperties.getSimilarity().getThreshold())
+                .build();
+
+        String result = assertDoesNotThrow(() -> semanticCache.findSimilarityRequest(searchRequest));
         assertTrue(Objects.isNull(result));
     }
 
