@@ -17,7 +17,7 @@ public class LogAspect {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Around("execution(* ru.deevdenis.ai.service.*.*(..)) || execution(* ru.deevdenis.ai.rag.*.*(..))")
+    @Around("execution(* ru.deevdenis.ai.service.*.*(..))")
     public Object logMethodCall(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String className = signature.getDeclaringType().getSimpleName();
