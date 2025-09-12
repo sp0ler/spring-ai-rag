@@ -51,3 +51,16 @@ spring:
       ssl:
         enabled: false
       url: redis://${spring.data.redis.username}:${spring.data.redis.password}@${spring.data.redis.host}:${spring.data.redis.port}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/database
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 4
+      idle-timeout: 10000
+      max-lifetime: 300000
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/changelog.yaml

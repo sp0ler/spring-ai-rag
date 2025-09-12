@@ -50,7 +50,7 @@ public class MemoryService {
             if (!similarity) {
                 Map<String, Object> metadata = document.getMetadata();
                 metadata.put("createdTime", LocalDateTime.now());
-                metadata.put("filename", resource.getFilename());
+                metadata.put("response", document.getText());
 
                 notSimilarDocuments.add(document);
             }

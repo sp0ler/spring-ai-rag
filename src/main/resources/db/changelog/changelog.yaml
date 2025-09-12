@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: "Deev Denis"
+      comment: "Enable pgvector extension"
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS vector
+
+  - changeSet:
+      id: 2
+      author: "Deev Denis"
+      comment: "Create items table"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: items
+      changes:
+        - createTable:
+            tableName: items
+            columns:
+              - column:
+                  name: id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: item_data
+                  type: JSONB
+              - column:
+                  name: embedding
+                  type: vector(1536)

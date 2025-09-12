@@ -30,6 +30,11 @@ dependencies {
 	// spring
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+	// db
+	implementation("org.postgresql:postgresql")
+	implementation("org.liquibase:liquibase-core")
 
 	// ai
 	implementation("org.springframework.ai:spring-ai-tika-document-reader")
