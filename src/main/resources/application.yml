@@ -64,3 +64,5 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/changelog.yaml
+  jpa:
+    open-in-view: false
