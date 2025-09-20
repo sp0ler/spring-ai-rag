@@ -60,7 +60,7 @@ class SemanticCacheTest extends AiApplicationTests {
         semanticCache.saveResponseForSimilarity(request, response);
 
         String result = chatService.chat("Какая погода в Москве?");
-        assertTrue(result.contains("+15"));
+        assertEquals(response, result);
     }
 
     @Test

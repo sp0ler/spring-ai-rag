@@ -4,8 +4,10 @@ import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.filter.Filter;
@@ -17,6 +19,7 @@ import org.springframework.util.StringUtils;
 import ru.deevdenis.ai.properties.AiProperties;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -94,20 +97,28 @@ public class RedisMemoryAdvisor implements CallAdvisor, Ordered {
 
         if (StringUtils.hasText(semanticResponse)) {
             // 2. Create the context from the documents
-            Map<String, Object> context = new HashMap<>(chatClientRequest.context());
-            context.put(RETRIEVED_DOCUMENTS, semanticResponse);
+//            Map<String, Object> context = new HashMap<>(chatClientRequest.context());
+//            context.put(RETRIEVED_DOCUMENTS, semanticResponse);
+//
+//            // 3. Augment the user prompt with the document context.
+//            UserMessage userMessage = chatClientRequest.prompt().getUserMessage();
+//            String augmentedUserText = this.promptTemplate
+//                    .render(Map.of("query", userMessage.getText(), "context", semanticResponse));
+//
+//            // 4. Update ChatClientRequest with augmented prompt.
+//            ChatClientRequest query = chatClientRequest.mutate()
+//                    .prompt(chatClientRequest.prompt().augmentUserMessage(augmentedUserText))
+//                    .context(context)
+//                    .build();
 
-            // 3. Augment the user prompt with the document context.
-            UserMessage userMessage = chatClientRequest.prompt().getUserMessage();
-            String augmentedUserText = this.promptTemplate
-                    .render(Map.of("query", userMessage.getText(), "context", semanticResponse));
-
-            // 4. Update ChatClientRequest with augmented prompt.
-            ChatClientRequest query = chatClientRequest.mutate()
-                    .prompt(chatClientRequest.prompt().augmentUserMessage(augmentedUserText))
-                    .context(context)
+            return ChatClientResponse.builder()
+                    .chatResponse(ChatResponse.builder()
+                            .generations(List.of(new Generation(new AssistantMessage(semanticResponse))))
+                            .build())
+                    .context(Map.copyOf(chatClientRequest.context()))
                     .build();
-            return chain.nextCall(query);
+
+//            return chain.nextCall(query);
         }
 
         // 5. No documents found, continue with the original request.
